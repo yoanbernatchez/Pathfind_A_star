@@ -1,5 +1,14 @@
-#include "../~External Libraries/catch.hpp"
+/*
+ * Author: YOAN BERNATCHEZ
+ * Date: 2020-01-29
+ * Tested class: Path
+ *
+ * This file unit tests all possible scenarios for the methods in the Path
+ * class.
+ */
+
 #include <vector>
+#include "../~External Libraries/catch.hpp"
 #include "../Level/Path.h"
 #include "../Entities/Unit.h"
 

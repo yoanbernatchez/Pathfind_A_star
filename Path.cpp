@@ -4,6 +4,10 @@
  * File: Path.cpp
  * Unit test file: TestPath.cpp
  *
+ * This class is part of a Tower Defense game project and has dependencies with
+ * other classes. If you are interested in seeing the game and the pathfinding
+ * in action, contact me at yoan_bernatchez@hotmail.com
+ *
  * This source file provides the user with a way to find a path between open
  * spaces and walls.
  * More precisely, when called, the findPath function finds a path
@@ -15,8 +19,7 @@
  * Material: AMD Ryzen 5 1600X
  * Test case 1 => Non-obstructed 5 steps path (executed 100 000 times)
  * Result: ~45ms (0.045s)
- * Test case 2 => Obstructed
- * Result: ms (s)
+ * Todo: make more benchmark tests
  */
 
 #include <iostream>
@@ -24,17 +27,53 @@
 #include <algorithm>
 #include "Path.h"
 
+/**
+ * @brief Returns a reference to the cube associated with the (x, y)
+ *        coordinates.
+ *
+ * @param coordX: Coordinate in x of the cube to find.
+ * @param coordY: Coordinate in y of the cube to find.
+ * @param cubes:  Reference of cube vector.
+ *
+ * @return Pointer containing a reference to a cube or nullptr if no cube
+ *         exist at the specified coordinates.
+ */
 static Cube *FindCube(const int coordX, const int coordY,
                       std::vector<Cube> &cubes);
+
+/**
+ * @brief Returns a reference to the next cube to process.
+ *
+ * @param startingPointX: Coordinate of the point in X from where we find the
+ *                        next cube to process.
+ * @param startingPointY: Coordinate of the point in Y from where we find the
+ *                        next cube to process.
+ *
+ * @return Pointer to the next cube with the lowest fCost and hCost.
+ */
 static Cube *GetNextCube(const int startingPointX, const int startingPointY,
                          std::vector<Cube> &cubes);
+
+/**
+ * @brief Propagates to the next adjacent cubes (gives the adjacent cubes a
+ *        gCost, hCost and fCost).
+ *
+ * @param startingPointX: Coordinate in X where the path begins.
+ * @param startingPointY: Coordinate in Y where the path begins.
+ * @param endingPointX:   Coordinate in X where the path ends.
+ * @param endingPointY:   Coordinate in Y where the path ends.
+ * @param cube:           Cube to propagate from.
+ * @param cubes:          Vector containing all the possible cubes to propagate
+ *                        to.
+ */
 static void Propagate(const int startingPointX, const int startingPointY,
                       const int endingPointX, const int endingPointY,
                       Cube *cube, std::vector<Cube> &cubes);
 
 /**
- * @brief This function traces the path according to the cube costs and finds
- *        the shortest path, then stores it in directions.
+ * @brief This function traces the path according to the child/parent relation
+ *        of each cube. Path is traced from the ending point to the starting
+ *        point, then reversed.
  *
  * @param startingPointX: Coordinate in X where the path begins.
  * @param startingPointY: Coordinate in Y where the path begins.
@@ -210,17 +249,8 @@ static void CreatePath(const int startingPointX, const int startingPointY,
     ReversePath(directions);
 }
 
-/**
- * @brief Propagates to the next adjacent cubes (gives the adjacent cubes a
- *        gCost, hCost and fCost).
- *
- * @param startingPointX: Coordinate in X where the path begins.
- * @param startingPointY: Coordinate in Y where the path begins.
- * @param endingPointX:   Coordinate in X where the path ends.
- * @param endingPointY:   Coordinate in Y where the path ends.
- * @param cube:           Cube to propagate from.
- * @param cubes:          Vector containing all the possible cubes to propagate
- *                        to.
+/*
+ * Sets the gCost, hCost and fCost for adjacent cubes to the one in parameters.
  */
 static void Propagate(const int startingPointX, const int startingPointY,
                       const int endingPointX, const int endingPointY,
@@ -229,9 +259,9 @@ static void Propagate(const int startingPointX, const int startingPointY,
     Cube *tempCube = nullptr;
     int shortestPathDir = -1;
 
+    /* Propagate to all adjacent cubes. */
     for(int i = 0, j = 0, k = 0; k < 4; k++)
     {
-        /* Propagate to all adjacent cubes. */
         switch(k)
         {
         case 0: /* Propagate to left adjacent cube. */
@@ -253,8 +283,8 @@ static void Propagate(const int startingPointX, const int startingPointY,
         }
 
         /* Make sure that the current cube is not the starting point. */
-        if(cube->coordX + i != startingPointX ||
-           cube->coordY + j != startingPointY)
+        if(cube->coordX + i != startingPointX
+           || cube->coordY + j != startingPointY)
         {
             tempCube = FindCube(cube->coordX + i, cube->coordY + j, cubes);
         }
@@ -267,8 +297,12 @@ static void Propagate(const int startingPointX, const int startingPointY,
         if(tempCube != nullptr && !tempCube->isVisited && !tempCube->isWall)
         {
             int add = cube->gCost;
+
             if(add < 0)
+            {
                 add = 0;
+            }
+
             add++;
 
             if(add < tempCube->gCost || tempCube->gCost < 0)
@@ -283,15 +317,8 @@ static void Propagate(const int startingPointX, const int startingPointY,
     }
 }
 
-/**
- * @brief Returns the next cube to process.
- *
- * @param startingPointX: Coordinate of the point in X from where we find the
- *                        next cube to process.
- * @param startingPointY: Coordinate of the point in Y from where we find the
- *                        next cube to process.
- *
- * @return Pointer to the next cube with the lowest fCost and hCost.
+/*
+ * Returns the next cube to process.
  */
 static Cube *GetNextCube(const int startingPointX, const int startingPointY,
                          std::vector<Cube> &cubes)
@@ -303,9 +330,9 @@ static Cube *GetNextCube(const int startingPointX, const int startingPointY,
     /* Find the lowest F cost. */
     for(auto &i : cubes)
     {
-        if(!i.isVisited && !i.isWall &&
-           (i.coordX != startingPointX || i.coordY != startingPointY) &&
-            i.fCost < lowestFCost)
+        if(!i.isVisited && !i.isWall
+           && (i.coordX != startingPointX || i.coordY != startingPointY)
+           && i.fCost < lowestFCost)
         {
 
             if(i.fCost >= 0)
@@ -321,8 +348,8 @@ static Cube *GetNextCube(const int startingPointX, const int startingPointY,
      */
     for(auto &i : cubes)
     {
-        if(!i.isVisited && !i.isWall && i.fCost == lowestFCost && i.hCost >= 0 &&
-           i.hCost < lowestHCost)
+        if(!i.isVisited && !i.isWall && i.fCost == lowestFCost && i.hCost >= 0
+           && i.hCost < lowestHCost)
         {
             lowestHCost = i.hCost;
             tempCube = &i;
@@ -332,16 +359,8 @@ static Cube *GetNextCube(const int startingPointX, const int startingPointY,
     return tempCube;
 }
 
-/**
- * @brief Returns the reference to the cube associated with the (x, y)
- *        coordinates.
- *
- * @param coordX: Coordinate in x of the cube to find.
- * @param coordY: Coordinate in y of the cube to find.
- * @param cubes:  Reference of cube vector.
- *
- * @return Pointer containing the reference to a cube or nullptr if no cube
- *         exist at the specified coordinates.
+/*
+ * Returns the reference to the cube associated with the (x, y) coordinates.
  */
 static Cube *FindCube(const int coordX, const int coordY,
                       std::vector<Cube> &cubes)
@@ -359,6 +378,9 @@ static Cube *FindCube(const int coordX, const int coordY,
 
 std::vector<int> &Path::GetDirections() { return directions; }
 
+/*
+ * Empties the path.
+ */
 void Path::DeletePath()
 {
     directions.clear();
