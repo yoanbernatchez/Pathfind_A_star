@@ -8,11 +8,10 @@
  * @brief Constants for all the possible directions in which an adjacent tile
  *        can be.
  */
-enum DIRECTION{DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN,
-               DIRECTION_MIDDLE};
+enum DIRECTION{DIRECTION_LEFT, DIRECTION_RIGHT, DIRECTION_UP, DIRECTION_DOWN};
 
 /**
- * @brief This class gives you the method findPath to find a path between
+ * @brief This class gives you the method FindPath to find a path between
  *        two points if the path exists and stores it into a vector.
  */
 class Path
